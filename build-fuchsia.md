@@ -94,3 +94,24 @@ Authorization code:
 jiri update
 更新源代码，问题解决。
 
+
+## 常见错误2：fx run
+```
+fx run -g
+....
+Could not extend fvm, unable to stat fvm image
+```
+
+这样的错误。解决方法：
+用文本编辑器打开~/fuchsia/tools/devshell/lib/fvm.sh，将
+
+stat_output=$(stat "${stat_flags[@]}" "${fvmraw}") 改为
+stat_output=$(LC_ALL=C stat "${stat_flags[@]}" "${fvmraw}")
+
+这是似乎是因为系统语言导致的相关问题。在
+
+size="${BASH_REMATCH[1]}" 的后面下一行
+echo $size
+
+然后保存，此时再 fx run -g 就能运行了。
+
