@@ -70,6 +70,13 @@ fx run -g
 
 
 
+## 分析源码
+
+fuchsia的源码使用clion IDE 进行查看。可以在fuchsia根目录运行
+```
+fx compdb
+```
+生成compile_commands.json文件。启动clion.sh，选择fuchsia根目录导入项目，然后经过符号解析过程后（比较慢），就可以使用clion来查看代码了。
 
 ## 常见错误1：cipd auth-login
 使用下载脚本下载到一半时，有些朋友会出现如下报错：
@@ -95,6 +102,52 @@ jiri update
 更新源代码，问题解决。
 
 
+
+## 运行编译好的hello_world
+https://www.robotshell.com/2019/10/14/os/HelloWorld/
+
+### 去掉中文显示
+```
+export LANGUAGE="en_US.UTF-8"
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+```
+### 编译
+```
+fx set ... --with //examples/hello_world
+fx build
+fx serve
+```
+### 起到虚拟机
+在另外一个终端
+```
+sudo ip tuntap add dev qemu mode tap user chyyuu && sudo ip link set qemu up
+fx run -N -u scripts/start-dhcp-server.sh  -g
+```
+### 运行helloworld
+在另外一个终端开始运行编译好的hello_world
+```
+$ fx shell run fuchsia-pkg://fuchsia.com/hello_world_cpp#meta/hello_world_cpp.cmx
+
+WARNING: Please opt in or out of fx metrics collection.
+You will receive this warning until an option is selected.
+To check what data we collect, run `fx metrics`
+To opt in or out, run `fx metrics <enable|disable>
+
+Hello, world!
+
+$ fx shell run fuchsia-pkg://fuchsia.com/hello_world_rust#meta/hello_world_rust.cmx
+
+WARNING: Please opt in or out of fx metrics collection.
+You will receive this warning until an option is selected.
+To check what data we collect, run `fx metrics`
+To opt in or out, run `fx metrics <enable|disable>
+
+Hello, world!
+
+
+```
+
 ## 常见错误2：fx run
 ```
 fx run -g
@@ -115,3 +168,25 @@ echo $size
 
 然后保存，此时再 fx run -g 就能运行了。
 
+
+## 常见错误3：fx run -N -u scripts/start-dhcp-server.sh  -g
+且
+``` 
+fx shell run fuchsia-pkg://fuchsia.com/hello_world_cpp#meta/hello_world_cpp.cmx
+```
+方法
+```
+取消中文输出
+export LANGUAGE="en_US.UTF-8"
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+设置虚拟网络
+add file: /etc/network/interfaces.d/qemu.conf
+内容为：iface qemu inet manual
+sudo service network-manager restart
+sudo ip tuntap add dev qemu mode tap user chyyuu && sudo ip link set qemu up
+
+然后再执行
+fx shell run fuchsia-pkg://fuchsia.com/hello_world_cpp#meta/hello_world_cpp.cmx
+就可以了
+```
